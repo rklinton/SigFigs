@@ -1,0 +1,140 @@
+#include <iostream>
+#include <string>
+#include <vector>
+using namespace std;
+
+// evaluates if the input is acceptable(positive number with no commas or decimals next to each other)
+bool EvalNumStat(string* nom)
+{
+	for (unsigned int i = 0; i < (*nom).size(); i++)
+	{
+		//makes sure the only non-digit chars are ',' or '.'
+		if (!isdigit((*nom)[i]) && ((*nom)[i]) != ',' && ((*nom)[i]) != '.')
+		{
+		return false;
+		}
+		//makes sure periods aren't next to periods or commas, and vice versa
+		else if ((((*nom)[i]) == '.' && (((*nom)[i + 1]) == '.' || ((*nom)[i + 1]) == ',')) || (((*nom)[i]) == ',' && (((*nom)[i + 1]) == ',' || ((*nom)[i + 1]) == '.')))
+		{
+			return false;
+		}
+		//makes sure there's always something after the decimal
+		else if ((*nom)[i] == '.' && i == ((*nom).size() - 1))
+		{
+			return false;
+		}
+	}
+	return true;
+}
+
+//find the index of the first non-zero digit
+int FirstNonZeroInd(string* nom)
+{
+	unsigned int i = 0;
+	for ( ; i < (*nom).size(); i++)
+	{
+		if (((*nom)[i]) != '0' && isdigit((*nom)[i]))
+		{
+			return i;
+		}
+	}
+	return i;
+}
+
+//determines if there is a second non-zero digit
+bool SecondNonZeroBool(int first, string* nom)
+{
+	//assigns the index found in FirstNonZeroInd(plus 1) to the iterative variable i so the following loop can determine if the following chars in the string are non-zero
+	unsigned int i = first + 1;
+	for ( ; i < (*nom).size(); i++)
+	{
+		if (((*nom)[i]) != '0' && isdigit((*nom)[i])) //if the char it is on isn't 0
+		{
+			return true; 
+		}
+	}
+	return false; // if there's no second non-zero, it returns false
+}
+
+//determines what the second non-zero is(if there is one)
+int LastNonZeroInd(string* nom, bool secnz)
+{
+	if (secnz)
+	{
+		unsigned int i = (*nom).size()-1;
+		for (; i < (*nom).size(); i--)
+		{
+			if ((((*nom)[i]) != '0')/* && (((*nom)[i]) != '.') && (((*nom)[i]) != ',')*/)
+			{
+				return i;
+			}
+		}
+	}
+	return 0;
+}
+
+bool HasDec(string* nom)
+{
+	for (unsigned int i = 0; i < (*nom).size(); i++)
+	{
+		if (((*nom)[i]) == '.') //if the char it is on is a decimal
+		{
+			return true;
+		}
+	}
+	return false; // if there's no decimal, it returns false
+}
+
+//counts all eligable sig figs
+int Count(int first, string* numb, bool nonze, bool hdec, int last)
+{
+	int count = 0;
+	unsigned int i = first;
+
+	for (; i < (*numb).size(); i++)
+	{
+		if ((*numb)[i] == ',' || (*numb)[i] == '.') // when it comes around to ',' or '.', don't coutn it as a sigfig (this causes all of the folloing if-elses to only be working with digits )
+		{
+
+		}
+		else if ((*numb)[i] != '0') //count it as a sigfig if it's a non zero
+		{
+			count++;
+		}
+		else if (hdec)//trailing zeros can be couted as long as there is a decimal
+		{
+			count++;
+		}
+		else if (i>=first && i<=last) //zeros can be counted to as long as there is second non-zero sandwhiching them
+		{
+			count++;
+		}
+	}
+	return count;
+}
+
+int main()
+{
+	string num;
+	do //do once
+	{
+		cout << "Enter Positive Number: " << endl;
+		cin >> num;
+	} while(!EvalNumStat(&num)); //keep doing if they type in a wrong number
+
+	int fnonz = FirstNonZeroInd(&num);
+	bool secnzb = SecondNonZeroBool(fnonz, &num); 
+	bool dec = HasDec(&num);
+	int lastnz = LastNonZeroInd( &num, secnzb);//optional, but make it look better
+
+	if (Count(fnonz, &num, secnzb, dec,lastnz) != 1) //printinting the number semantically correctly
+	{
+		cout << "This number has " << Count(fnonz, &num, secnzb, dec,lastnz) << " Sig Figs" << endl;
+	}
+	else
+	{
+		cout << "This number has " << Count(fnonz, &num, secnzb, dec,lastnz) << " Sig Fig" << endl;
+	}
+
+	cin.get();
+}
